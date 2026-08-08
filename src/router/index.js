@@ -23,6 +23,11 @@ const router = createRouter({
       component: () => import('../views/NotesView.vue'),
     },
     {
+      path: '/upload',
+      name: 'upload',
+      component: () => import('../views/UploadView.vue'),
+    },
+    {
       path: '/notes/august-seven',
       name: 'note-august-seven',
       component: () => import('../views/NoteDetailView.vue'),
