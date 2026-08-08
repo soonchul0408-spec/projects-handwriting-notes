@@ -8,9 +8,16 @@ const isResult = ref(false)
 const selectedFile = ref(null)
 const previewUrl = ref('')
 const toastMessage = ref('')
+const selectedConnection = ref('광합성')
 let toastTimer
 
 const noteTitle = computed(() => selectedFile.value?.name?.replace(/\.[^/.]+$/, '') || '생물학 — 세포의 구조')
+const selectedRelation = computed(() => connectedNotes.find((note) => note.title === selectedConnection.value))
+const connectedNotes = [
+  { title: '광합성', type: '개념 연결', body: '세포가 에너지를 만드는 방식으로 연결돼요.', date: '어제', className: 'node-top' },
+  { title: '생명체의 구성', type: '상위 개념', body: '세포가 생명체를 이루는 기본 단위라는 점에서 이어져요.', date: '08. 06', className: 'node-left' },
+  { title: '에너지 대사', type: '관련 주제', body: '세포 안에서 일어나는 에너지 흐름을 함께 볼 수 있어요.', date: '08. 04', className: 'node-right' },
+]
 
 function showToast(message) {
   toastMessage.value = message
@@ -72,11 +79,16 @@ function resetWorkspace() {
   previewUrl.value = ''
   isResult.value = false
   isProcessing.value = false
+  selectedConnection.value = '광합성'
 }
 
 function copyNote() {
   navigator.clipboard?.writeText('세포는 생명체의 기본 단위이다. 세포막은 물질의 출입을 조절하며, 핵은 유전 정보를 보관한다.')
   showToast('요약 내용을 클립보드에 복사했어요.')
+}
+
+function selectConnection(title) {
+  selectedConnection.value = title
 }
 </script>
 
@@ -167,6 +179,37 @@ function copyNote() {
               <div><p>어떤 사진이든 괜찮아요</p><span>구겨진 필기도 알아볼게요 <b>→</b></span></div>
             </div>
           </template>
+        </div>
+      </section>
+
+      <section v-if="isResult" class="connections-section page-width">
+        <div class="connections-copy">
+          <span class="eyebrow"><span class="eyebrow-dot"></span> YOUR KNOWLEDGE MAP</span>
+          <h2>필기들이 서로<br /><em>연결되기 시작해요.</em></h2>
+          <p>정리된 노트에서 같은 개념과 이어지는 주제를 찾아요. 한 장의 필기가 혼자 남지 않도록, 당신만의 지식 지도를 만들어드릴게요.</p>
+          <div class="connection-detail">
+            <div class="detail-icon">↗</div>
+            <div>
+              <span>{{ selectedRelation?.type }}</span>
+              <strong>{{ selectedRelation?.title }} 노트</strong>
+              <p>{{ selectedRelation?.body }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="graph-card">
+          <div class="graph-card-header"><div><span class="state-kicker">CONNECTED NOTES</span><h3>세포의 구조 <b>·</b> 3개의 연결</h3></div><button type="button" @click="showToast('노트 연결을 분석하고 있어요.')">↗ 전체 보기</button></div>
+          <div class="graph-canvas">
+            <svg class="graph-lines" viewBox="0 0 500 260" preserveAspectRatio="none" aria-hidden="true">
+              <path class="graph-line graph-line-active" d="M250 128 C250 99 250 71 250 42" />
+              <path class="graph-line" d="M231 143 C201 168 159 188 119 208" />
+              <path class="graph-line" d="M269 143 C302 168 342 188 381 208" />
+              <circle cx="250" cy="128" r="3" /><circle cx="250" cy="42" r="2.5" /><circle cx="119" cy="208" r="2.5" /><circle cx="381" cy="208" r="2.5" />
+            </svg>
+            <button class="graph-node node-center" type="button" :class="{ selected: !selectedConnection }" @click="selectedConnection = null"><span class="node-pulse"></span><strong>세포의<br />구조</strong><small>지금 보고 있어요</small></button>
+            <button v-for="note in connectedNotes" :key="note.title" class="graph-node" :class="[note.className, { selected: selectedConnection === note.title }]" type="button" @click="selectConnection(note.title)"><span class="node-dot"></span><strong>{{ note.title }}</strong><small>{{ note.date }}</small></button>
+            <span class="graph-label label-one">같은 개념</span><span class="graph-label label-two">확장해서 보기</span>
+          </div>
+          <div class="graph-legend"><span><i class="legend-dot current"></i>현재 노트</span><span><i class="legend-dot related"></i>연결된 노트</span><span class="graph-count">노드를 눌러 관계 확인</span></div>
         </div>
       </section>
 
