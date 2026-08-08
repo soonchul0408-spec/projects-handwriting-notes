@@ -5,6 +5,7 @@ const fileInput = ref(null)
 const isDragging = ref(false)
 const isProcessing = ref(false)
 const isResult = ref(false)
+const uploaderOpened = ref(false)
 const selectedFile = ref(null)
 const previewUrl = ref('')
 const toastMessage = ref('')
@@ -29,6 +30,14 @@ function showToast(message) {
 
 function openFilePicker() {
   fileInput.value?.click()
+}
+
+function openUploadFlow() {
+  uploaderOpened.value = true
+  openFilePicker()
+  window.setTimeout(() => {
+    document.querySelector('.upload-workspace')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, 120)
 }
 
 function handleFileChange(event) {
@@ -63,6 +72,7 @@ function prepareFile(file) {
 }
 
 function useDemo() {
+  uploaderOpened.value = true
   selectedFile.value = { name: '생물학 — 세포의 구조.jpg' }
   previewUrl.value = ''
   isProcessing.value = true
@@ -79,6 +89,7 @@ function resetWorkspace() {
   previewUrl.value = ''
   isResult.value = false
   isProcessing.value = false
+  uploaderOpened.value = false
   selectedConnection.value = '광합성'
 }
 
@@ -111,8 +122,38 @@ function selectConnection(title) {
       <button class="login-button" type="button" @click="showToast('로그인 기능은 곧 준비할게요.')">로그인 <span>↗</span></button>
     </header>
 
+    <input ref="fileInput" class="sr-only" type="file" accept="image/*" @change="handleFileChange" />
+
     <main>
-      <section class="hero page-width">
+      <section class="start-section page-width">
+        <div class="start-heading">
+          <span class="eyebrow"><span class="eyebrow-dot"></span> START YOUR NOTE</span>
+          <h1>어떤 방식으로<br /><em>시작할까요?</em></h1>
+          <p>새로운 필기를 정리하거나, 지금까지 쌓인 노트를 다시 볼 수 있어요.</p>
+        </div>
+
+        <div class="start-choices">
+          <button class="start-choice photo-choice" type="button" @click="openUploadFlow">
+            <span class="choice-number">01</span>
+            <div class="choice-visual photo-visual" aria-hidden="true">
+              <span class="choice-paper back"></span><span class="choice-paper middle"></span><span class="choice-paper front"><svg viewBox="0 0 32 32" fill="none"><path d="M16 22V8m0 0-5 5m5-5 5 5M7 23.5v1A2.5 2.5 0 0 0 9.5 27h13a2.5 2.5 0 0 0 2.5-2.5v-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </div>
+            <div class="choice-copy"><span>NEW NOTE</span><h2>사진 추가</h2><p>손글씨 사진을 올리고<br />보기 좋은 노트로 정리해요.</p></div>
+            <span class="choice-button">사진 선택하기 <b>→</b></span>
+          </button>
+
+          <a class="start-choice notes-choice" href="/notes">
+            <span class="choice-number">02</span>
+            <div class="choice-visual notes-visual" aria-hidden="true">
+              <div class="mini-library"><span><i></i><b>8/7 필기</b><small>3 sections</small></span><span><i></i><b>광합성의 과정</b><small>5 links</small></span><span><i></i><b>세포의 구조</b><small>3 links</small></span></div>
+            </div>
+            <div class="choice-copy"><span>MY LIBRARY</span><h2>내 필기로 들어가기</h2><p>정리된 필기를 찾고<br />연결된 내용을 함께 확인해요.</p></div>
+            <span class="choice-button">필기 목록 보기 <b>→</b></span>
+          </a>
+        </div>
+      </section>
+
+      <section v-if="uploaderOpened || isProcessing || isResult" class="hero upload-workspace page-width">
         <div class="hero-copy">
           <div class="eyebrow"><span class="eyebrow-dot"></span> HANDWRITING TO NOTES</div>
           <h1>찍으면,<br /><em>공부가 정리돼요.</em></h1>
@@ -134,8 +175,6 @@ function selectConnection(title) {
           @dragleave.prevent="isDragging = false"
           @drop.prevent="handleDrop"
         >
-          <input ref="fileInput" class="sr-only" type="file" accept="image/*" @change="handleFileChange" />
-
           <template v-if="isProcessing">
             <div class="processing-state">
               <div class="loader-ring"></div>
