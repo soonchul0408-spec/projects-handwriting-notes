@@ -1,5 +1,8 @@
 <script setup>
 import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const query = ref('')
 const activeCollection = ref('all')
@@ -15,7 +18,7 @@ const notes = [
     pages: 1,
     links: 3,
     image: '/handwritten-note-sample-rotated.jpeg',
-    excerpt: '사진으로 남긴 필기 한 장이에요. 내용을 읽고 정리할 수 있어요.',
+    excerpt: '시장 지표와 폴리실리콘 관련 정책 내용을 기록한 손글씨 메모예요.',
     tag: '최근 업로드',
   },
   {
@@ -72,6 +75,10 @@ function showToast(message) {
 }
 
 function openNote(note) {
+  if (note.id === 'august-seven') {
+    router.push('/notes/august-seven')
+    return
+  }
   showToast(`${note.title} 노트를 열었어요.`)
 }
 </script>

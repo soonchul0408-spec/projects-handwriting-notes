@@ -22,6 +22,11 @@ const router = createRouter({
       name: 'notes',
       component: () => import('../views/NotesView.vue'),
     },
+    {
+      path: '/notes/august-seven',
+      name: 'note-august-seven',
+      component: () => import('../views/NoteDetailView.vue'),
+    },
   ],
 })
 
