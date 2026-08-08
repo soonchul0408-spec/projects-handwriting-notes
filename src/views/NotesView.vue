@@ -8,14 +8,14 @@ let toastTimer
 
 const notes = [
   {
-    id: 'growth',
-    title: '성장 발달',
-    subject: '아동간호학',
-    date: '오늘 · 11:52',
+    id: 'august-seven',
+    title: '8/7 필기',
+    subject: '미분류',
+    date: '8/7 · 촬영',
     pages: 1,
     links: 3,
     image: '/handwritten-note-sample-rotated.jpeg',
-    excerpt: '성장 발달에 영향을 미치는 요인과 주요 지표를 정리했어요.',
+    excerpt: '사진으로 남긴 필기 한 장이에요. 내용을 읽고 정리할 수 있어요.',
     tag: '최근 업로드',
   },
   {
@@ -58,7 +58,7 @@ const filteredNotes = computed(() => {
 
   return notes.filter((note) => {
     const matchesQuery = !normalizedQuery || `${note.title} ${note.subject} ${note.excerpt}`.toLowerCase().includes(normalizedQuery)
-    const matchesCollection = activeCollection.value === 'all' || (activeCollection.value === 'recent' && note.id === 'growth') || (activeCollection.value === 'linked' && note.links >= 5)
+    const matchesCollection = activeCollection.value === 'all' || (activeCollection.value === 'recent' && note.id === 'august-seven') || (activeCollection.value === 'linked' && note.links >= 5)
     return matchesQuery && matchesCollection
   })
 })
@@ -86,20 +86,20 @@ function openNote(note) {
 
     <main class="notes-main page-width">
       <aside class="notes-sidebar">
-        <div class="sidebar-heading"><span class="eyebrow">LIBRARY</span><span class="note-total">12 notes</span></div>
+        <div class="sidebar-heading"><span class="eyebrow">LIBRARY</span><span class="note-total">4 notes</span></div>
         <nav class="collection-nav" aria-label="노트 필터">
-          <button :class="{ active: activeCollection === 'all' }" type="button" @click="activeCollection = 'all'"><span class="collection-icon">▤</span>모든 노트 <b>12</b></button>
-          <button :class="{ active: activeCollection === 'recent' }" type="button" @click="activeCollection = 'recent'"><span class="collection-icon">◷</span>최근 업로드 <b>3</b></button>
-          <button :class="{ active: activeCollection === 'linked' }" type="button" @click="activeCollection = 'linked'"><span class="collection-icon">⌘</span>연결 많은 노트 <b>5</b></button>
+          <button :class="{ active: activeCollection === 'all' }" type="button" @click="activeCollection = 'all'"><span class="collection-icon">▤</span>모든 노트 <b>4</b></button>
+          <button :class="{ active: activeCollection === 'recent' }" type="button" @click="activeCollection = 'recent'"><span class="collection-icon">◷</span>최근 업로드 <b>1</b></button>
+          <button :class="{ active: activeCollection === 'linked' }" type="button" @click="activeCollection = 'linked'"><span class="collection-icon">⌘</span>연결 많은 노트 <b>2</b></button>
         </nav>
         <div class="sidebar-divider"></div>
         <div class="sidebar-heading tags-heading"><span class="eyebrow">SUBJECTS</span><button type="button" @click="showToast('과목을 추가할 수 있어요.')">+</button></div>
-        <div class="subject-list"><button type="button" @click="showToast('아동간호학 노트를 모아볼게요.')"><i class="subject-dot coral"></i>아동간호학 <span>6</span></button><button type="button" @click="showToast('생물학 노트를 모아볼게요.')"><i class="subject-dot blue"></i>생물학 <span>4</span></button><button type="button" @click="showToast('기타 노트를 모아볼게요.')"><i class="subject-dot yellow"></i>기타 <span>2</span></button></div>
+        <div class="subject-list"><button type="button" @click="showToast('아직 과목이 지정되지 않은 노트예요.')"><i class="subject-dot coral"></i>미분류 <span>1</span></button><button type="button" @click="showToast('생물학 노트를 모아볼게요.')"><i class="subject-dot blue"></i>생물학 <span>2</span></button><button type="button" @click="showToast('기타 노트를 모아볼게요.')"><i class="subject-dot yellow"></i>기타 <span>1</span></button></div>
         <div class="sidebar-quote"><span>“</span><p>정리하는 건<br /><em>잊지 않는 방법.</em></p></div>
       </aside>
 
       <section class="notes-content">
-        <div class="notes-heading"><div><span class="eyebrow"><span class="eyebrow-dot"></span> YOUR LIBRARY</span><h1>내 노트</h1><p>찍어둔 필기들이 다시 보기 좋은 노트가 되어 있어요.</p></div><div class="notes-heading-meta"><strong>12</strong><span>총 노트</span></div></div>
+        <div class="notes-heading"><div><span class="eyebrow"><span class="eyebrow-dot"></span> YOUR LIBRARY</span><h1>내 노트</h1><p>찍어둔 필기들이 다시 보기 좋은 노트가 되어 있어요.</p></div><div class="notes-heading-meta"><strong>4</strong><span>총 노트</span></div></div>
         <div class="notes-toolbar"><label class="search-field"><span>⌕</span><input v-model="query" type="search" placeholder="노트 제목이나 내용을 검색해보세요" /></label><button class="sort-button" type="button" @click="showToast('최근 추가된 순으로 보고 있어요.')">최근 추가순 <span>⌄</span></button></div>
 
         <div v-if="filteredNotes.length" class="notes-list">
