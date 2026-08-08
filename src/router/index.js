@@ -27,6 +27,11 @@ const router = createRouter({
       name: 'note-august-seven',
       component: () => import('../views/NoteDetailView.vue'),
     },
+    {
+      path: '/notes/:noteId',
+      name: 'photo-note-detail',
+      component: () => import('../views/PhotoNoteDetailView.vue'),
+    },
   ],
 })
 

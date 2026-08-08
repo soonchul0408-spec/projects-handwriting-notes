@@ -1,0 +1,86 @@
+export const noteLibrary = [
+  {
+    id: 'august-seven',
+    title: '8/7 시장·폴리실리콘 메모',
+    shortTitle: '8/7 필기',
+    subject: '시장 메모',
+    dateKey: '08.07',
+    date: '8/7 · 금요일',
+    pages: 1,
+    image: '/handwritten-note-sample-rotated.jpeg',
+    excerpt: '시장 지표와 폴리실리콘 관세·미국 생산 지원 내용을 기록한 메모예요.',
+    topics: ['시장 지표', '반도체', '원유', '폴리실리콘', '관세', '에너지', '양자컴'],
+    route: '/notes/august-seven',
+  },
+  {
+    id: 'august-six',
+    title: '8/6 시장·메가프로젝트 메모',
+    shortTitle: '8/6 필기',
+    subject: '시장 메모',
+    dateKey: '08.06',
+    date: '8/6 · 목요일',
+    pages: 1,
+    image: '/note-2026-08-06.jpeg',
+    excerpt: '시장 지표와 폴리실리콘 관세, 구리 관련주, 메가프로젝트 내용을 적었어요.',
+    topics: ['시장 지표', '반도체', '원유', '폴리실리콘', '관세', '구리', '메가프로젝트'],
+    route: '/notes/august-six',
+    sections: [
+      {
+        kicker: 'MARKET CHECK',
+        title: '시장 지표',
+        items: ['야간선물 1,025.10 · 1.63%', 'EWY 169.14 · 1.17%', '반도체 12,008.88 · 1.4%', '원유선물 75.06 · 0.94%', '10년 금리 4.615%'],
+      },
+      {
+        kicker: 'POLYSILICON',
+        title: '폴리실리콘·구리',
+        items: ['미국의 폴리실리콘 15% 관세 검토 메모', '무역확장법 232조 관련 내용', 'KBI메탈 — 구리 관련주로 기록'],
+      },
+      {
+        kicker: 'MEGA PROJECT',
+        title: '메가프로젝트',
+        items: ['10일 청와대 메가프로젝트 점검회의 주재', '임기 내 착공·임기 내 생산', '민관 합동 점검 관련 메모'],
+      },
+    ],
+  },
+  {
+    id: 'august-five',
+    title: '8/5 AI 보안·광통신 메모',
+    shortTitle: '8/5 필기',
+    subject: '시장 메모',
+    dateKey: '08.05',
+    date: '8/5 · 수요일',
+    pages: 1,
+    image: '/note-2026-08-05.jpeg',
+    excerpt: '시장 지표와 AI 보안, 광통신 규제, 신재생에너지 테마를 기록했어요.',
+    topics: ['시장 지표', '반도체', '원유', 'AI 보안', '광통신', '신재생에너지', '에너지'],
+    route: '/notes/august-five',
+    sections: [
+      {
+        kicker: 'MARKET CHECK',
+        title: '시장 지표',
+        items: ['야간선물·EWY 기록', '반도체 지표 기록', '원유선물·10년 금리 기록'],
+      },
+      {
+        kicker: 'AI SECURITY',
+        title: 'AI 보안·광통신',
+        items: ['미국의 중국 광트랜시버 규제 추진', '데이터 유출 가능성 제기', '광통신 업체 수혜 기대', 'S2W — 보안주로 기록'],
+      },
+      {
+        kicker: 'RISING THEMES',
+        title: '상승 테마',
+        items: ['광통신', '신재생에너지', '에너지', '태양광·풍력·2차전지 관련 메모'],
+      },
+    ],
+  },
+]
+
+export const connectedConcepts = [
+  { name: '시장 지표', count: 3 },
+  { name: '반도체', count: 3 },
+  { name: '원유', count: 3 },
+  { name: '폴리실리콘', count: 2 },
+  { name: '관세', count: 2 },
+  { name: '에너지', count: 2 },
+  { name: '광통신', count: 1 },
+  { name: '구리', count: 1 },
+]

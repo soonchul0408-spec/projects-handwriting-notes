@@ -1,70 +1,43 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { connectedConcepts, noteLibrary } from '@/data/noteLibrary'
 
 const router = useRouter()
-
 const query = ref('')
-const activeCollection = ref('all')
+const activeDate = ref(null)
+const activeConcept = ref(null)
 const toastMessage = ref('')
 let toastTimer
 
-const notes = [
-  {
-    id: 'august-seven',
-    title: '8/7 필기',
-    subject: '미분류',
-    date: '8/7 · 촬영',
-    pages: 1,
-    links: 3,
-    image: '/handwritten-note-sample-rotated.jpeg',
-    excerpt: '시장 지표와 폴리실리콘 관련 정책 내용을 기록한 손글씨 메모예요.',
-    tag: '최근 업로드',
-  },
-  {
-    id: 'photosynthesis',
-    title: '광합성의 과정',
-    subject: '생물학',
-    date: '어제 · 19:20',
-    pages: 2,
-    links: 5,
-    image: null,
-    excerpt: '빛에너지를 이용해 포도당을 만드는 과정을 한눈에 정리했어요.',
-    tag: '연결 많음',
-  },
-  {
-    id: 'cell',
-    title: '세포의 구조',
-    subject: '생물학',
-    date: '08. 06 · 14:08',
-    pages: 1,
-    links: 3,
-    image: null,
-    excerpt: '세포막과 핵의 역할, 세포를 이루는 기본 구조를 담았어요.',
-    tag: '복습 예정',
-  },
-  {
-    id: 'review',
-    title: '중간고사 복습 메모',
-    subject: '아동간호학',
-    date: '08. 04 · 21:34',
-    pages: 3,
-    links: 7,
-    image: null,
-    excerpt: '시험 전에 다시 봐야 할 키워드들을 모아둔 노트예요.',
-    tag: '연결 많음',
-  },
-]
-
 const filteredNotes = computed(() => {
   const normalizedQuery = query.value.trim().toLowerCase()
-
-  return notes.filter((note) => {
-    const matchesQuery = !normalizedQuery || `${note.title} ${note.subject} ${note.excerpt}`.toLowerCase().includes(normalizedQuery)
-    const matchesCollection = activeCollection.value === 'all' || (activeCollection.value === 'recent' && note.id === 'august-seven') || (activeCollection.value === 'linked' && note.links >= 5)
-    return matchesQuery && matchesCollection
+  return noteLibrary.filter((note) => {
+    const searchable = `${note.title} ${note.subject} ${note.excerpt} ${note.topics.join(' ')}`.toLowerCase()
+    const matchesQuery = !normalizedQuery || searchable.includes(normalizedQuery)
+    const matchesDate = !activeDate.value || note.dateKey === activeDate.value
+    const matchesConcept = !activeConcept.value || note.topics.includes(activeConcept.value)
+    return matchesQuery && matchesDate && matchesConcept
   })
 })
+
+const activeFilterLabel = computed(() => activeConcept.value || (activeDate.value ? `${activeDate.value.replace('.', '/')} 필기` : null))
+
+function selectDate(dateKey) {
+  activeDate.value = activeDate.value === dateKey ? null : dateKey
+  activeConcept.value = null
+}
+
+function selectConcept(concept) {
+  activeConcept.value = activeConcept.value === concept ? null : concept
+  activeDate.value = null
+}
+
+function clearFilters() {
+  activeDate.value = null
+  activeConcept.value = null
+  query.value = ''
+}
 
 function showToast(message) {
   toastMessage.value = message
@@ -75,11 +48,7 @@ function showToast(message) {
 }
 
 function openNote(note) {
-  if (note.id === 'august-seven') {
-    router.push('/notes/august-seven')
-    return
-  }
-  showToast(`${note.title} 노트를 열었어요.`)
+  router.push(note.route)
 }
 </script>
 
@@ -92,50 +61,53 @@ function openNote(note) {
     </header>
 
     <main class="notes-main page-width">
-      <aside class="notes-sidebar">
-        <div class="sidebar-heading"><span class="eyebrow">LIBRARY</span><span class="note-total">4 notes</span></div>
-        <nav class="collection-nav" aria-label="노트 필터">
-          <button :class="{ active: activeCollection === 'all' }" type="button" @click="activeCollection = 'all'"><span class="collection-icon">▤</span>모든 노트 <b>4</b></button>
-          <button :class="{ active: activeCollection === 'recent' }" type="button" @click="activeCollection = 'recent'"><span class="collection-icon">◷</span>최근 업로드 <b>1</b></button>
-          <button :class="{ active: activeCollection === 'linked' }" type="button" @click="activeCollection = 'linked'"><span class="collection-icon">⌘</span>연결 많은 노트 <b>2</b></button>
-        </nav>
-        <div class="sidebar-divider"></div>
-        <div class="sidebar-heading tags-heading"><span class="eyebrow">SUBJECTS</span><button type="button" @click="showToast('과목을 추가할 수 있어요.')">+</button></div>
-        <div class="subject-list"><button type="button" @click="showToast('아직 과목이 지정되지 않은 노트예요.')"><i class="subject-dot coral"></i>미분류 <span>1</span></button><button type="button" @click="showToast('생물학 노트를 모아볼게요.')"><i class="subject-dot blue"></i>생물학 <span>2</span></button><button type="button" @click="showToast('기타 노트를 모아볼게요.')"><i class="subject-dot yellow"></i>기타 <span>1</span></button></div>
-        <div class="sidebar-quote"><span>“</span><p>정리하는 건<br /><em>잊지 않는 방법.</em></p></div>
+      <aside class="knowledge-sidebar">
+        <div class="sidebar-title"><div><span class="eyebrow">NOTE MAP</span><h2>노트 탐색</h2></div><span>3 notes</span></div>
+
+        <section class="sidebar-section">
+          <div class="sidebar-section-heading"><span>날짜별 노트</span><small>TIMELINE</small></div>
+          <div class="timeline-list">
+            <button v-for="note in noteLibrary" :key="note.id" :class="{ active: activeDate === note.dateKey }" type="button" @click="selectDate(note.dateKey)">
+              <span class="timeline-date">{{ note.dateKey }}</span>
+              <span class="timeline-copy"><strong>{{ note.shortTitle }}</strong><small>{{ note.topics.slice(0, 2).join(' · ') }}</small></span>
+              <i></i>
+            </button>
+          </div>
+        </section>
+
+        <section class="sidebar-section concept-section">
+          <div class="sidebar-section-heading"><span>연결된 개념</span><small>CONNECTIONS</small></div>
+          <p class="concept-guide">같은 단어를 가진 날짜의 필기를 한 번에 모아볼 수 있어요.</p>
+          <div class="concept-list">
+            <button v-for="concept in connectedConcepts" :key="concept.name" :class="{ active: activeConcept === concept.name }" type="button" @click="selectConcept(concept.name)"><span><i></i>{{ concept.name }}</span><b>{{ concept.count }}</b></button>
+          </div>
+        </section>
+
+        <button v-if="activeFilterLabel" class="clear-filter" type="button" @click="clearFilters">× {{ activeFilterLabel }} 해제</button>
       </aside>
 
       <section class="notes-content">
-        <div class="notes-heading"><div><span class="eyebrow"><span class="eyebrow-dot"></span> YOUR LIBRARY</span><h1>내 노트</h1><p>찍어둔 필기들이 다시 보기 좋은 노트가 되어 있어요.</p></div><div class="notes-heading-meta"><strong>4</strong><span>총 노트</span></div></div>
-        <div class="notes-toolbar"><label class="search-field"><span>⌕</span><input v-model="query" type="search" placeholder="노트 제목이나 내용을 검색해보세요" /></label><button class="sort-button" type="button" @click="showToast('최근 추가된 순으로 보고 있어요.')">최근 추가순 <span>⌄</span></button></div>
+        <div class="notes-heading"><div><span class="eyebrow"><span class="eyebrow-dot"></span> YOUR LIBRARY</span><h1>내 노트</h1><p>날짜와 핵심 주제를 따라 필기 사이를 오갈 수 있어요.</p></div><div class="notes-heading-meta"><strong>{{ filteredNotes.length }}</strong><span>보이는 노트</span></div></div>
+        <div class="notes-toolbar"><label class="search-field"><span>⌕</span><input v-model="query" type="search" placeholder="날짜, 제목, 핵심 개념을 검색해보세요" /></label><button v-if="activeFilterLabel" class="active-filter" type="button" @click="clearFilters"><span>{{ activeFilterLabel }}</span> ×</button><button class="sort-button" type="button" @click="showToast('최근 날짜순으로 보고 있어요.')">최근 날짜순 <span>⌄</span></button></div>
 
         <div v-if="filteredNotes.length" class="notes-list">
-          <article v-for="(note, index) in filteredNotes" :key="note.id" class="saved-note" :class="{ featured: index === 0 && !query && activeCollection === 'all' }" @click="openNote(note)">
-            <div class="saved-note-image" :class="{ 'paper-preview': !note.image }">
-              <img v-if="note.image" :src="note.image" :alt="`${note.title} 필기 사진`" />
-              <div v-else class="generated-paper"><span>{{ note.title }}</span><small>{{ note.subject }}</small><i></i><i></i><i></i><b>✦</b></div>
-              <span class="photo-count">{{ note.pages }}p</span>
-            </div>
-            <div class="saved-note-body"><div class="saved-note-top"><span class="note-subject">{{ note.subject }}</span><span class="saved-note-date">{{ note.date }}</span></div><h2>{{ note.title }}</h2><p>{{ note.excerpt }}</p><div class="saved-note-bottom"><span class="note-status" :class="{ coral: note.tag === '최근 업로드' }"><i></i>{{ note.tag }}</span><span class="link-count">⌁ {{ note.links }} 연결</span></div></div>
-            <button class="note-more" type="button" aria-label="노트 메뉴" @click.stop="showToast('노트 메뉴를 준비 중이에요.')">···</button>
+          <article v-for="(note, index) in filteredNotes" :key="note.id" class="saved-note" :class="{ featured: index === 0 && !activeFilterLabel && !query }" @click="openNote(note)">
+            <div class="saved-note-image"><img :src="note.image" :alt="`${note.date} 필기 사진`" /><span class="photo-count">{{ note.pages }}p</span></div>
+            <div class="saved-note-body"><div class="saved-note-top"><span class="note-subject">{{ note.subject }}</span><span class="saved-note-date">{{ note.date }}</span></div><h2>{{ note.title }}</h2><p>{{ note.excerpt }}</p><div class="topic-chips"><button v-for="topic in note.topics.slice(0, 4)" :key="topic" type="button" @click.stop="selectConcept(topic)">#{{ topic }}</button><span v-if="note.topics.length > 4">+{{ note.topics.length - 4 }}</span></div></div>
+            <span class="note-arrow">→</span>
           </article>
         </div>
-        <div v-else class="empty-notes"><span>⌕</span><h2>찾는 노트가 없어요</h2><p>다른 검색어로 다시 찾아보세요.</p></div>
+        <div v-else class="empty-notes"><span>⌕</span><h2>연결된 노트가 없어요</h2><p>다른 날짜나 개념을 선택해보세요.</p><button type="button" @click="clearFilters">모든 노트 보기</button></div>
       </section>
     </main>
 
-    <footer class="notes-footer page-width"><span>필기<span class="brand-dot">.</span></span><span>노트는 자동으로 연결되고, 당신의 공부는 오래 남아요.</span></footer>
+    <footer class="notes-footer page-width"><span>필기<span class="brand-dot">.</span></span><span>날짜는 달라도, 같은 개념은 서로 이어져요.</span></footer>
     <transition name="toast"><div v-if="toastMessage" class="toast">{{ toastMessage }}</div></transition>
   </div>
 </template>
 
 <style scoped>
-.notes-shell { min-height: 100vh; background: #f7f6f0; color: var(--ink); }
-.notes-topbar { height: 88px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
-.notes-nav { display: flex; gap: 31px; margin-left: 100px; color: #a09f96; font-size: 11px; font-weight: 600; }.notes-nav a { padding: 5px 0; }.notes-nav a.active { color: var(--ink); border-bottom: 1px solid var(--accent); }
-.notes-upload-button { border: 1px solid var(--ink); border-radius: 4px; padding: 11px 15px; background: var(--ink); color: white; font-size: 10px; font-weight: 700; transition: transform .2s, background .2s; }.notes-upload-button:hover { background: #4a4a43; transform: translateY(-1px); }
-.notes-main { display: grid; grid-template-columns: 185px 1fr; gap: 85px; padding: 69px 0 106px; }.notes-sidebar { padding-top: 7px; }.sidebar-heading { display: flex; align-items: center; justify-content: space-between; }.sidebar-heading .eyebrow { color: #9e9d93; font-size: 8px; }.note-total { color: #bab9af; font-family: 'DM Mono', monospace; font-size: 8px; }.collection-nav { display: flex; flex-direction: column; gap: 6px; margin-top: 24px; }.collection-nav button { display: flex; align-items: center; width: 100%; border: 0; border-radius: 4px; background: transparent; color: #88877e; padding: 10px 9px; text-align: left; font-size: 11px; font-weight: 600; letter-spacing: -.03em; }.collection-nav button:hover, .collection-nav button.active { background: #eeece3; color: var(--ink); }.collection-nav button b { margin-left: auto; color: #aaa9a0; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 400; }.collection-icon { width: 20px; color: #aaa99e; font-size: 14px; }.collection-nav .active .collection-icon { color: var(--accent); }.sidebar-divider { height: 1px; margin: 30px 0; background: #e4e3d9; }.tags-heading button { border: 0; background: transparent; color: #aaa99f; font-size: 18px; line-height: 1; }.subject-list { display: flex; flex-direction: column; gap: 16px; margin-top: 23px; }.subject-list button { display: flex; align-items: center; gap: 8px; border: 0; background: transparent; color: #77766e; padding: 0; text-align: left; font-size: 11px; }.subject-list button:hover { color: var(--ink); }.subject-list button span { margin-left: auto; color: #b5b4a9; font-family: 'DM Mono', monospace; font-size: 9px; }.subject-dot { width: 7px; height: 7px; border-radius: 50%; background: #aaa99f; }.subject-dot.coral { background: #e4977a; }.subject-dot.blue { background: #8ba9ba; }.subject-dot.yellow { background: #d6ba76; }.sidebar-quote { margin-top: 100px; color: #a7a69b; }.sidebar-quote span { display: block; height: 19px; color: #e0b29e; font-family: Georgia, serif; font-size: 42px; line-height: .5; }.sidebar-quote p { margin: 15px 0 0; font-size: 11px; line-height: 1.7; letter-spacing: -.05em; }.sidebar-quote em { color: var(--accent); font-family: 'Gowun Batang', serif; font-style: normal; font-weight: 700; }
-.notes-heading { display: flex; align-items: flex-end; justify-content: space-between; }.notes-heading h1 { margin: 16px 0 9px; font-size: 38px; font-weight: 800; letter-spacing: -.1em; }.notes-heading p { margin: 0; color: #95948b; font-size: 12px; letter-spacing: -.04em; }.notes-heading-meta { display: flex; flex-direction: column; align-items: flex-end; padding-bottom: 2px; }.notes-heading-meta strong { color: var(--accent); font-family: 'Gowun Batang', serif; font-size: 30px; line-height: 1; }.notes-heading-meta span { margin-top: 4px; color: #aaa99f; font-family: 'DM Mono', monospace; font-size: 8px; }.notes-toolbar { display: flex; gap: 10px; margin-top: 34px; padding-bottom: 15px; border-bottom: 1px solid #deddd4; }.search-field { display: flex; flex: 1; align-items: center; gap: 8px; border: 1px solid #e0dfd6; border-radius: 3px; background: rgba(255,255,252,.6); padding: 9px 12px; }.search-field span { color: #a8a79e; font-size: 19px; line-height: .5; }.search-field input { width: 100%; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 10px; }.search-field input::placeholder { color: #b0afa5; }.sort-button { border: 1px solid #e0dfd6; border-radius: 3px; background: transparent; color: #8c8b82; padding: 0 12px; font-size: 10px; }.sort-button span { margin-left: 7px; color: var(--accent); font-size: 13px; }.notes-list { display: flex; flex-direction: column; gap: 12px; padding-top: 15px; }.saved-note { position: relative; display: grid; grid-template-columns: 112px 1fr; gap: 20px; min-height: 135px; border: 1px solid transparent; border-radius: 5px; background: rgba(255,255,252,.38); padding: 12px; cursor: pointer; transition: border .2s, background .2s, transform .2s; }.saved-note:hover { border-color: #deddd3; background: #fffefa; transform: translateX(3px); }.saved-note.featured { border-color: #e6dace; background: #fffefa; box-shadow: 0 8px 25px rgba(70,68,55,.05); }.saved-note-image { position: relative; width: 112px; height: 135px; overflow: hidden; border: 1px solid #ddd9cc; border-radius: 3px; background: #e8e4d6; }.saved-note-image img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }.photo-count { position: absolute; right: 6px; bottom: 6px; border-radius: 2px; background: rgba(42,42,37,.68); color: white; padding: 4px 5px; font-family: 'DM Mono', monospace; font-size: 7px; }.paper-preview { display: grid; place-items: center; background: #f6f1e2; }.generated-paper { display: flex; flex-direction: column; gap: 5px; width: 75px; height: 103px; padding: 15px 11px; border: 1px solid #ded8c6; background: #fffcf0; box-shadow: 3px 4px 0 #e4dfd1; transform: rotate(-5deg); }.generated-paper span { color: #55544c; font-family: 'Gowun Batang', serif; font-size: 10px; font-weight: 700; }.generated-paper small { color: #9c9586; font-family: 'Gowun Batang', serif; font-size: 7px; }.generated-paper i { width: 48px; height: 1px; background: #d1ccba; }.generated-paper b { margin-top: 3px; color: #e39b7e; font-size: 12px; font-weight: 400; }.saved-note-body { min-width: 0; align-self: center; padding: 4px 35px 4px 0; }.saved-note-top { display: flex; justify-content: space-between; align-items: center; }.note-subject { color: var(--accent); font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: .08em; }.saved-note-date { color: #aaa99f; font-family: 'DM Mono', monospace; font-size: 8px; }.saved-note h2 { margin: 11px 0 8px; color: var(--ink); font-size: 17px; font-weight: 800; letter-spacing: -.08em; }.saved-note p { max-width: 410px; margin: 0; color: #93928a; font-size: 10px; line-height: 1.7; letter-spacing: -.03em; }.saved-note-bottom { display: flex; align-items: center; gap: 16px; margin-top: 16px; }.note-status, .link-count { color: #a5a49a; font-family: 'DM Mono', monospace; font-size: 8px; }.note-status i { display: inline-block; width: 5px; height: 5px; margin-right: 5px; border-radius: 50%; background: #bcbab0; }.note-status.coral { color: var(--accent); }.note-status.coral i { background: var(--accent); }.link-count { color: #aaa99e; }.note-more { position: absolute; top: 19px; right: 17px; border: 0; background: transparent; color: #aaa99e; padding: 0; font-size: 14px; letter-spacing: 2px; }.empty-notes { padding: 70px 0; text-align: center; }.empty-notes > span { color: #d0b0a2; font-size: 34px; }.empty-notes h2 { margin: 14px 0 7px; font-size: 16px; }.empty-notes p { margin: 0; color: #aaa99f; font-size: 11px; }.notes-footer { display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding: 23px 0 29px; color: #aaa99f; font-size: 10px; }.notes-footer > span:first-child { color: var(--ink); font-size: 15px; font-weight: 800; letter-spacing: -.08em; }
-@media (max-width: 800px) { .notes-main { grid-template-columns: 1fr; gap: 36px; padding-top: 48px; }.notes-sidebar { display: none; }.notes-nav { margin-left: auto; margin-right: 24px; }.saved-note { grid-template-columns: 95px 1fr; }.saved-note-image { width: 95px; height: 124px; } }
-@media (max-width: 520px) { .page-width { width: min(100% - 36px, 520px); }.notes-topbar { height: 72px; }.notes-nav { display: none; }.notes-upload-button { padding: 9px 11px; font-size: 9px; }.notes-heading h1 { font-size: 34px; }.notes-heading p { font-size: 10px; }.notes-heading-meta { display: none; }.notes-toolbar { flex-direction: column; }.sort-button { align-self: flex-end; padding: 8px 10px; }.saved-note { grid-template-columns: 74px 1fr; gap: 12px; min-height: 114px; padding: 8px; }.saved-note-image { width: 74px; height: 114px; }.saved-note-body { padding-right: 15px; }.saved-note h2 { margin: 8px 0 5px; font-size: 14px; }.saved-note p { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 9px; }.saved-note-bottom { gap: 8px; margin-top: 10px; }.saved-note-date { display: none; }.note-more { top: 14px; right: 10px; }.notes-footer { align-items: flex-start; gap: 20px; }.notes-footer > span:last-child { max-width: 150px; text-align: right; line-height: 1.5; } }
+.notes-shell { min-height: 100vh; background: #f7f6f0; color: var(--ink); }.notes-topbar { height: 88px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }.notes-nav { display: flex; gap: 31px; margin-left: 100px; color: #a09f96; font-size: 11px; font-weight: 600; }.notes-nav a { padding: 5px 0; }.notes-nav a.active { color: var(--ink); border-bottom: 1px solid var(--accent); }.notes-upload-button { border: 1px solid var(--ink); border-radius: 4px; padding: 11px 15px; background: var(--ink); color: white; font-size: 10px; font-weight: 700; }.notes-main { display: grid; grid-template-columns: 235px 1fr; gap: 66px; padding: 61px 0 105px; }.knowledge-sidebar { position: sticky; top: 25px; align-self: start; }.sidebar-title { display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 18px; border-bottom: 1px solid #deddd4; }.sidebar-title .eyebrow { color: var(--accent); font-size: 7px; }.sidebar-title h2 { margin: 7px 0 0; font-size: 18px; font-weight: 800; letter-spacing: -.07em; }.sidebar-title > span { color: #aaa99f; font-family: 'DM Mono', monospace; font-size: 7px; }.sidebar-section { padding: 24px 0 4px; border-bottom: 1px solid #e1e0d7; }.sidebar-section-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }.sidebar-section-heading > span { color: #77766e; font-size: 10px; font-weight: 800; }.sidebar-section-heading small { color: #b0afa5; font-family: 'DM Mono', monospace; font-size: 6px; letter-spacing: .1em; }.timeline-list { position: relative; display: flex; flex-direction: column; }.timeline-list::before { position: absolute; top: 10px; bottom: 10px; left: 39px; width: 1px; background: #deddd4; content: ''; }.timeline-list button { position: relative; z-index: 1; display: grid; grid-template-columns: 39px 1fr 8px; align-items: center; min-height: 54px; border: 0; border-radius: 4px; background: transparent; color: #77766e; padding: 5px 7px 5px 0; text-align: left; }.timeline-list button:hover, .timeline-list button.active { background: #eeeae2; color: var(--ink); }.timeline-date { font-family: 'DM Mono', monospace; font-size: 8px; }.timeline-copy { display: flex; flex-direction: column; gap: 4px; padding-left: 13px; }.timeline-copy strong { font-size: 10px; font-weight: 800; }.timeline-copy small { color: #aaa99f; font-size: 7px; }.timeline-list button i { width: 7px; height: 7px; border: 2px solid #f7f6f0; border-radius: 50%; background: #c7c5bb; }.timeline-list button.active i { background: var(--accent); }.concept-section { padding-bottom: 20px; }.concept-guide { margin: -3px 0 15px; color: #aaa99f; font-size: 7px; line-height: 1.55; }.concept-list { display: flex; flex-direction: column; gap: 3px; }.concept-list button { display: flex; align-items: center; justify-content: space-between; border: 0; border-radius: 3px; background: transparent; color: #85847b; padding: 7px 8px; font-size: 9px; }.concept-list button:hover, .concept-list button.active { background: #f2e6df; color: #6b554c; }.concept-list button span { display: flex; align-items: center; gap: 7px; }.concept-list i { width: 5px; height: 5px; border-radius: 50%; background: #d4a08a; }.concept-list b { color: #b0afa6; font-family: 'DM Mono', monospace; font-size: 7px; font-weight: 400; }.clear-filter { width: 100%; margin-top: 13px; border: 1px solid #e2d7cf; border-radius: 3px; background: #faf0e9; color: #8b6f61; padding: 8px; font-size: 8px; }.notes-heading { display: flex; align-items: flex-end; justify-content: space-between; }.notes-heading h1 { margin: 16px 0 9px; font-size: 38px; font-weight: 800; letter-spacing: -.1em; }.notes-heading p { margin: 0; color: #95948b; font-size: 12px; }.notes-heading-meta { display: flex; flex-direction: column; align-items: flex-end; }.notes-heading-meta strong { color: var(--accent); font-family: 'Gowun Batang', serif; font-size: 30px; line-height: 1; }.notes-heading-meta span { margin-top: 4px; color: #aaa99f; font-family: 'DM Mono', monospace; font-size: 8px; }.notes-toolbar { display: flex; gap: 9px; margin-top: 33px; padding-bottom: 15px; border-bottom: 1px solid #deddd4; }.search-field { display: flex; flex: 1; align-items: center; gap: 8px; border: 1px solid #e0dfd6; border-radius: 3px; background: rgba(255,255,252,.6); padding: 9px 12px; }.search-field span { color: #a8a79e; font-size: 19px; line-height: .5; }.search-field input { width: 100%; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 10px; }.search-field input::placeholder { color: #b0afa5; }.sort-button, .active-filter { border: 1px solid #e0dfd6; border-radius: 3px; background: transparent; color: #8c8b82; padding: 0 12px; font-size: 9px; }.sort-button span { margin-left: 6px; color: var(--accent); }.active-filter { border-color: #e5cfc3; background: #fcf1eb; color: #956f5e; }.active-filter span { margin-right: 5px; }.notes-list { display: flex; flex-direction: column; gap: 12px; padding-top: 15px; }.saved-note { position: relative; display: grid; grid-template-columns: 124px 1fr 30px; gap: 21px; min-height: 157px; border: 1px solid transparent; border-radius: 5px; background: rgba(255,255,252,.38); padding: 12px; cursor: pointer; transition: border .2s, background .2s, transform .2s; }.saved-note:hover { border-color: #deddd3; background: #fffefa; transform: translateX(3px); }.saved-note.featured { border-color: #e6dace; background: #fffefa; box-shadow: 0 8px 25px rgba(70,68,55,.05); }.saved-note-image { position: relative; width: 124px; height: 157px; overflow: hidden; border: 1px solid #ddd9cc; border-radius: 3px; background: #e8e4d6; }.saved-note-image img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }.photo-count { position: absolute; right: 6px; bottom: 6px; border-radius: 2px; background: rgba(42,42,37,.68); color: white; padding: 4px 5px; font-family: 'DM Mono', monospace; font-size: 7px; }.saved-note-body { min-width: 0; align-self: center; padding: 4px 0; }.saved-note-top { display: flex; justify-content: space-between; align-items: center; }.note-subject { color: var(--accent); font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: .08em; }.saved-note-date { color: #aaa99f; font-family: 'DM Mono', monospace; font-size: 8px; }.saved-note h2 { margin: 10px 0 7px; font-size: 17px; font-weight: 800; letter-spacing: -.08em; }.saved-note p { max-width: 455px; margin: 0; color: #93928a; font-size: 9px; line-height: 1.7; }.topic-chips { display: flex; align-items: center; gap: 5px; margin-top: 15px; }.topic-chips button { border: 1px solid #e2e0d7; border-radius: 99px; background: #fbfaf5; color: #8d8c83; padding: 4px 7px; font-size: 7px; }.topic-chips button:hover { border-color: #dfb7a4; color: var(--accent); }.topic-chips > span { color: #aaa99f; font-family: 'DM Mono', monospace; font-size: 7px; }.note-arrow { display: grid; place-items: center; align-self: center; width: 27px; height: 27px; border-radius: 50%; color: var(--accent); font-size: 16px; }.saved-note:hover .note-arrow { background: #f5e2d9; }.empty-notes { padding: 70px 0; text-align: center; }.empty-notes > span { color: #d0b0a2; font-size: 34px; }.empty-notes h2 { margin: 14px 0 7px; font-size: 16px; }.empty-notes p { margin: 0; color: #aaa99f; font-size: 11px; }.empty-notes button { margin-top: 16px; border: 1px solid #deddd4; border-radius: 3px; background: transparent; padding: 8px 12px; color: #77766e; font-size: 9px; }.notes-footer { display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding: 23px 0 29px; color: #aaa99f; font-size: 10px; }.notes-footer > span:first-child { color: var(--ink); font-size: 15px; font-weight: 800; letter-spacing: -.08em; }
+@media (max-width: 850px) { .notes-main { grid-template-columns: 200px 1fr; gap: 35px; }.notes-nav { margin-left: auto; margin-right: 20px; }.saved-note { grid-template-columns: 100px 1fr 24px; }.saved-note-image { width: 100px; height: 142px; }.topic-chips button:nth-child(n+4) { display: none; } }
+@media (max-width: 680px) { .page-width { width: min(100% - 36px, 520px); }.notes-topbar { height: 72px; }.notes-nav { display: none; }.notes-main { display: block; padding-top: 43px; }.knowledge-sidebar { position: static; margin-bottom: 39px; }.sidebar-title { padding-bottom: 13px; }.sidebar-section { padding-top: 18px; }.timeline-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }.timeline-list::before { display: none; }.timeline-list button { display: flex; min-height: 68px; flex-direction: column; align-items: flex-start; justify-content: center; border: 1px solid #e2e0d7; padding: 8px; }.timeline-copy { padding: 5px 0 0; }.timeline-list button i { position: absolute; top: 7px; right: 7px; }.concept-list { flex-direction: row; flex-wrap: wrap; }.concept-list button { border: 1px solid #e1dfd6; border-radius: 99px; padding: 6px 8px; }.concept-guide { margin-bottom: 10px; }.clear-filter { width: auto; padding-left: 12px; padding-right: 12px; }.notes-heading h1 { font-size: 34px; }.notes-heading-meta { display: none; }.notes-toolbar { flex-wrap: wrap; }.search-field { flex-basis: 100%; }.active-filter, .sort-button { min-height: 31px; }.saved-note { grid-template-columns: 84px 1fr 20px; gap: 12px; min-height: 127px; padding: 8px; }.saved-note-image { width: 84px; height: 127px; }.saved-note h2 { font-size: 14px; }.saved-note p { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }.saved-note-date { display: none; }.topic-chips { margin-top: 9px; }.topic-chips button:nth-child(n+3) { display: none; }.notes-footer { align-items: flex-start; gap: 20px; }.notes-footer > span:last-child { max-width: 160px; text-align: right; line-height: 1.5; } }
 </style>
