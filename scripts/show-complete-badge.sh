@@ -13,6 +13,7 @@ swiftc "${PROJECT_DIR}/tools/CompletionBadge/main.swift" \
   -o "${APP_EXECUTABLE}"
 
 cp "${PROJECT_DIR}/tools/CompletionBadge/Info.plist" "${APP_DIR}/Contents/Info.plist"
+codesign --force --deep --sign - "${APP_DIR}" >/dev/null
 
 # Restarting the tiny helper lets a later task raise the badge again.
 pkill -x HandwritingNotesCompletionBadge 2>/dev/null || true
