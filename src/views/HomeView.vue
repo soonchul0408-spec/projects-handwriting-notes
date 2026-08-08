@@ -103,6 +103,7 @@ function selectConnection(title) {
       </a>
 
       <nav class="topnav" aria-label="주 메뉴">
+        <a href="/notes">내 노트</a>
         <a href="#how-it-works">사용 방법</a>
         <a href="#why">이렇게 좋아요</a>
       </nav>
