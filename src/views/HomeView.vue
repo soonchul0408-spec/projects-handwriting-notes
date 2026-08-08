@@ -5,6 +5,7 @@
         <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 19.2 6.3 14 16.7 3.6a1.9 1.9 0 0 1 2.7 0l1 1a1.9 1.9 0 0 1 0 2.7L10 17.7 5 19.2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m14.9 5.4 3.7 3.7M5 19.2l3.6-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
         <span>필기<span class="brand-dot">.</span></span>
       </a>
+      <nav class="home-nav" aria-label="노트 메뉴"><a href="/notes">내 노트</a><a href="/concepts">핵심 단어</a><a href="/metrics">수치 그래프</a></nav>
     </header>
 
     <main>
@@ -36,6 +37,6 @@
 </template>
 
 <style scoped>
-.home-only { min-height: 100vh; }.minimal-topbar { justify-content: flex-start; }.home-only .start-section { display: flex; min-height: calc(100vh - 88px); flex-direction: column; justify-content: center; padding-top: 32px; padding-bottom: 66px; }
-@media (max-width: 720px) { .home-only .start-section { min-height: auto; padding-top: 46px; padding-bottom: 70px; } }
+.home-only { min-height: 100vh; }.minimal-topbar { justify-content: flex-start; gap: 75px; }.home-nav { display: flex; gap: 25px; color: #a09f96; font-size: 10px; font-weight: 600; }.home-nav a { padding: 5px 0; }.home-nav a:hover { color: var(--ink); }.home-only .start-section { display: flex; min-height: calc(100vh - 88px); flex-direction: column; justify-content: center; padding-top: 32px; padding-bottom: 66px; }
+@media (max-width: 720px) { .minimal-topbar { height: auto; min-height: 72px; flex-wrap: wrap; gap: 13px; padding-top: 14px; padding-bottom: 10px; }.home-nav { order: 3; width: 100%; justify-content: space-between; gap: 8px; overflow-x: auto; font-size: 9px; }.home-only .start-section { min-height: auto; padding-top: 46px; padding-bottom: 70px; } }
 </style>

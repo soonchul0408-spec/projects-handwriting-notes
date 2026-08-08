@@ -12,6 +12,8 @@
 4. 서버의 OpenAI API가 손글씨를 읽고 정해진 JSON 형식으로 정리합니다.
 5. 정리된 노트와 압축 사진을 현재 브라우저의 IndexedDB에 저장합니다.
 6. **내 노트**에서 날짜·검색어·핵심 개념으로 찾고 상세 내용을 복습합니다.
+7. **핵심 단어**에서 메모장별 반복 빈도와 각 노트의 핵심 단어를 비교합니다.
+8. **수치 그래프**에서 여러 메모장에 반복된 지표를 날짜순 그래프로 확인합니다.
 
 AI가 확실히 판독하지 못한 문구는 상세 화면의 `원본과 다시 확인해주세요` 영역에 분리해 표시합니다.
 
@@ -66,6 +68,9 @@ GitHub 저장소를 Vercel 프로젝트에 연결한 뒤 프로젝트 환경변�
 ## 주요 구조
 
 - `src/views/UploadView.vue`: 촬영·앨범 선택·분석·저장 흐름
+- `src/views/ConceptsView.vue`: 메모장별 핵심 단어 빈도 비교
+- `src/views/MetricsView.vue`: 반복 수치 지표 그래프
+- `src/services/noteInsights.js`: 핵심 단어 집계와 반복 수치 추출
 - `src/services/imageProcessing.js`: 브라우저 이미지 압축
 - `src/services/noteStorage.js`: IndexedDB 저장
 - `src/services/noteRepository.js`: 예시 노트와 사용자 노트 통합

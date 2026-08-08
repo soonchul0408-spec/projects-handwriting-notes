@@ -2,6 +2,8 @@
   "rewrites": [
     { "source": "/notes", "destination": "/index.html" },
     { "source": "/notes/:path*", "destination": "/index.html" },
+    { "source": "/concepts", "destination": "/index.html" },
+    { "source": "/metrics", "destination": "/index.html" },
     { "source": "/upload", "destination": "/index.html" }
   ]
 }

@@ -13,6 +13,12 @@ export const noteLibrary = [
     topics: ['시장 지표', '반도체', '원유', '폴리실리콘', '관세', '에너지', '양자컴'],
     route: '/notes/august-seven',
     userCreated: false,
+    sections: [
+      {
+        title: '시장 지표',
+        items: ['야간선물 995.40 · +1.45%', 'EWY 164.12 · +2.99%', '반도체 12,048.69 · +0.33%', '10년 국채 4.69 · +1.30%', '원유 78.11 · +3.84%'],
+      },
+    ],
   },
   {
     id: 'august-six',
